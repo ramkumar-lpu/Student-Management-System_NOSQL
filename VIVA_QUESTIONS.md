@@ -1,12 +1,24 @@
-# CSE494: Intelligent NoSQL Databases - Viva Questions & Detailed Answers
+# CSE494: Intelligent NoSQL Databases - Comprehensive Viva Defense Guide
+## Course: Intelligent NoSQL Databases (CSE494)
+## Project Title: Complete Student Management System Using MongoDB & PyMongo
 
-This document provides **20 in-depth viva questions and concise, technical answers** designed to help you confidently defend this Student Management System project during your viva examination.
+**Candidate Name**: RAM KUMAR  
+**Registration Number**: 12306472  
+**Roll Number**: 26  
+**Section**: KO020  
+**Department**: Computer Science & Engineering  
+**Institution**: Lovely Professional University  
+**GitHub Repository**: [https://github.com/ramkumar-lpu/Student-Management-System_NOSQL](https://github.com/ramkumar-lpu/Student-Management-System_NOSQL)  
+
+---
+
+This document provides **30 in-depth viva questions and detailed, technically rigorous answers** designed to help you confidently defend every aspect of this Student Management System during your viva examination.
 
 ---
 
 ### Q1: Why did you choose MongoDB (NoSQL) over a traditional RDBMS (like MySQL or PostgreSQL)?
 **Answer**:
-In student record systems, student profile information and their academic marks have a 1-to-1 or bounded 1-to-few relationship. In an RDBMS, this requires at least two normalized tables (`students` and `marks`) joined via foreign keys. Every read request demands a multi-table SQL `JOIN`.
+In student record systems, student profile information and their academic marks have a 1-to-1 or bounded 1-to-few relationship. In an RDBMS, this requires at least two normalized tables (`students` and `marks`) linked via foreign keys. Every read request demands a multi-table SQL `JOIN`.
 In MongoDB, subject marks are embedded directly inside the student document. This provides **high locality of reference**—the entire student record is retrieved in a single disk read without joins. Additionally, MongoDB's dynamic schema allows flexible additions (e.g., adding elective subjects or extracurricular scores) without executing disruptive `ALTER TABLE` statements.
 
 ---
@@ -196,3 +208,114 @@ Yes:
 1. **Horizontal Scaling via Sharding**: Partition the `students` collection across multiple shard servers using a shard key such as `{ department: 1, roll_no: 1 }` or hashed `{ roll_no: "hashed" }`.
 2. **High Availability via Replica Sets**: Deploy a 3-node Replica Set (1 Primary, 2 Secondaries) with automatic failover and read preference delegation (e.g., directing analytical queries to secondaries).
 3. **Compound Indexes**: Add compound indexes for frequent multi-attribute queries (e.g., `{ department: 1, semester: 1 }`).
+
+---
+
+### Q21: How is the application containerized using Docker and Docker Compose?
+**Answer**:
+The application is structured into 3 isolated Docker containers:
+1. **`sms_mongodb`**: Runs official MongoDB 7.0 on internal port 27017 with persistent volume storage (`sms_mongo_data`).
+2. **`sms_backend`**: Built from `python:3.11-slim`, runs the Flask REST API on port 5000, connects to `mongodb://database:27017/`.
+3. **`sms_frontend`**: Multi-stage build with `node:20-alpine` compiling React assets, served by `nginx:1.27-alpine` on host port 8082.
+All containers share a private Docker bridge network (`sms_network`), communicating via internal Docker DNS names (`database`, `backend`, `frontend`).
+
+---
+
+### Q22: What role does Nginx play in the frontend container?
+**Answer**:
+Nginx serves two essential roles:
+1. **Static File Web Server**: Extremely fast, low-footprint delivery of compiled React HTML, JavaScript, and CSS bundles with `try_files $uri $uri/ /index.html` fallback for client-side routing.
+2. **Reverse Proxy**: Proxies `/api/*` HTTP traffic to `http://backend:5000/api/*`. This eliminates browser CORS issues in production because both frontend and API share the same origin URL (`http://localhost:8082`).
+
+---
+
+### Q23: Why is `FRONTEND_PORT=8082` used instead of the default port 8080?
+**Answer**:
+On the development machine, host port 8080 was already bound by an existing system service (`Jenkins`, PID 3140). Attempting to bind another service to 8080 triggers `listen tcp 0.0.0.0:8080: bind: An attempt was made to access a socket in a way forbidden by its access permissions`.
+To resolve this without altering host services or Docker Compose service files, `docker-compose.yml` utilizes the environment variable syntax:
+```yaml
+ports:
+  - "${FRONTEND_PORT:-8080}:80"
+```
+Setting `FRONTEND_PORT=8082` in `.env` rebinds the frontend to port 8082 cleanly while maintaining 8080 as the standard default for clean machines.
+
+---
+
+### Q24: How does Docker Compose ensure the backend doesn't start before MongoDB is ready?
+**Answer**:
+Docker Compose uses **Healthchecks** and conditional dependencies (`condition: service_healthy`):
+1. `sms_mongodb` runs a healthcheck every 10 seconds:
+   ```yaml
+   healthcheck:
+     test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"]
+     interval: 10s
+     timeout: 5s
+     retries: 5
+   ```
+2. `sms_backend` declares:
+   ```yaml
+   depends_on:
+     database:
+       condition: service_healthy
+   ```
+This guarantees Flask only starts after MongoDB has initialized its storage engine and is actively accepting TCP connections.
+
+---
+
+### Q25: How does database data persist across Docker container restarts and removals?
+**Answer**:
+Data persistence is achieved via a Docker **named volume**:
+```yaml
+volumes:
+  sms_mongo_data:
+```
+This volume is mounted to MongoDB's internal data directory `/data/db`. Even if containers are stopped or removed (`docker compose down`), the underlying volume preserves all BSON documents and index structures on the host filesystem.
+
+---
+
+### Q26: How did you ensure automated testing never corrupts or deletes production data?
+**Answer**:
+In `backend/tests/test_api.py`, we implement **Database Isolation**:
+1. During test suite startup (`setUpClass`), the Flask test client overrides the database name to `student_management_test`.
+2. The dynamic helper `get_current_db()` in `database.py` routes all queries to `student_management_test`.
+3. Test fixtures are seeded and verified inside `student_management_test`.
+4. Upon completion (`tearDownClass`), the entire test database is dropped (`client.drop_database("student_management_test")`), leaving the production database `student_management` completely untouched.
+
+---
+
+### Q27: What is the difference between PyMongo's `insert_one()` and `update_one()` with `$set`, and why is `$set` essential?
+**Answer**:
+- `insert_one(doc)` inserts a new document into the collection and assigns a new `_id`.
+- `update_one({"_id": ...}, {"$set": update_fields})` modifies specific fields in an existing document without replacing the document.
+- **Why `$set` is essential**: If you call `update_one({"_id": ...}, update_fields)` without the `$set` atomic operator, MongoDB will **replace the entire document** with the new dictionary, wiping out unmentioned fields like `roll_no`, `created_at`, or `_id`. Using `$set` ensures surgical updates.
+
+---
+
+### Q28: How does the application prevent Cross-Origin Resource Sharing (CORS) issues in development vs production?
+**Answer**:
+- **In Development**: Flask enables `CORS(app, resources={r"/api/*": {"origins": "*"}})`, permitting cross-origin requests from the Vite development server (`http://localhost:5173`).
+- **In Production (Docker)**: Nginx acts as a reverse proxy. The browser sends all requests to `http://localhost:8082`. Requests to `/api/` are forwarded internally to `http://backend:5000/api/`. Because the browser only talks to `http://localhost:8082`, the origin is identical and CORS is avoided entirely.
+
+---
+
+### Q29: What happens if MongoDB becomes unreachable while the Flask backend is running?
+**Answer**:
+PyMongo will attempt to connect within the configured `serverSelectionTimeoutMS` (default 5000ms). If the connection times out, PyMongo raises `ServerSelectionTimeoutError`.
+In `routes.py`, database calls and healthcheck endpoints catch `PyMongoError` and respond with an **HTTP 503 Service Unavailable** error payload:
+```json
+{
+  "status": "error",
+  "database": "disconnected",
+  "message": "Unable to connect to MongoDB server"
+}
+```
+The React frontend detects the 503 status and displays a visual warning banner alerting the user that the database service is currently offline.
+
+---
+
+### Q30: How is client-side validation synchronized with backend validation?
+**Answer**:
+Validation is enforced at three distinct layers:
+1. **Frontend (React)**: In `StudentModal.jsx`, input fields perform instantaneous validation (email regex, marks between 0 and 100, valid semester 1-8). Prevents bad requests from wasting network bandwidth.
+2. **Backend Application Layer (Flask)**: In `validators.py`, payload attributes, data types, and required fields are validated before constructing database queries.
+3. **Database Engine Layer (MongoDB)**: `$jsonSchema` validation enforces constraints directly in the database engine. Even if someone bypasses the UI and backend using direct curl/Postman calls, the database itself will reject invalid writes with code 121.

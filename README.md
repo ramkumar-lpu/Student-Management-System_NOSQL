@@ -1,6 +1,15 @@
 # Complete Student Management System (SMS)
 ### Intelligent NoSQL Databases (Course Code: CSE494)
 
+**Candidate Name**: RAM KUMAR  
+**Registration Number**: 12306472  
+**Roll Number**: 26  
+**Section**: KO020  
+**Department**: Computer Science & Engineering  
+**Institution**: Lovely Professional University  
+**Evaluation**: 30 Marks Total (Implementation: 15 Marks, Report: 5 Marks, Viva: 10 Marks)  
+**Repository**: [https://github.com/ramkumar-lpu/Student-Management-System_NOSQL](https://github.com/ramkumar-lpu/Student-Management-System_NOSQL)  
+
 A full-stack, production-grade, and beginner-friendly Student Management System built using **MongoDB**, **PyMongo**, **Python (Flask)**, and **React (Vite + Tailwind CSS + Recharts)**.
 
 ---
@@ -521,9 +530,10 @@ cd backend
 ## 13. Project Deliverables
 
 This workspace contains full academic documentation for your CSE494 submission:
-- [PROJECT_REPORT.md](PROJECT_REPORT.md): Comprehensive academic project report covering problem statement, NoSQL justification, document design, aggregation pipelines, and test results.
-- [VIVA_QUESTIONS.md](VIVA_QUESTIONS.md): 18+ detailed viva questions and answers covering MongoDB, PyMongo, indexes, BSON, and aggregations.
-- [SCREENSHOTS_GUIDE.md](SCREENSHOTS_GUIDE.md): Step-by-step checklist of screenshots to capture for submission.
+- [PROJECT_ARCHITECTURE.md](PROJECT_ARCHITECTURE.md): Comprehensive system architecture reference detailing request flow, Mermaid architecture diagrams, database schema, B-Tree indexes, all 12 REST APIs, all 5 aggregation pipelines, Docker topology, and Nginx reverse proxy configuration.
+- [PROJECT_REPORT.md](PROJECT_REPORT.md): Comprehensive academic project report mapped directly to the 30-mark evaluation rubric (Implementation 15, Report 5, Viva 10) with complete technical explanations and test verification results.
+- [VIVA_QUESTIONS.md](VIVA_QUESTIONS.md): 30 in-depth viva questions and detailed answers covering MongoDB, BSON, indexing, PyMongo, Docker, Nginx, port configuration, and performance scaling.
+- [SCREENSHOTS_GUIDE.md](SCREENSHOTS_GUIDE.md): 15-screenshot capture checklist with step-by-step instructions and demonstration tips for the viva presentation.
 
 ---
 

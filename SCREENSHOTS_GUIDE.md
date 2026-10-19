@@ -1,44 +1,70 @@
 # Academic Submission: Screenshots Checklist & Capture Guide
-### Course: Intelligent NoSQL Databases (CSE494)
-### Project: Student Management System Using MongoDB & PyMongo
+## Course: Intelligent NoSQL Databases (CSE494)
+## Project Title: Complete Student Management System Using MongoDB & PyMongo
 
-This guide provides a structured checklist of all the essential screenshots you should capture from your browser, terminal, and MongoDB Compass for your college project report and viva presentation.
-
----
-
-## Screenshot Checklist
-
-| # | Screenshot Name | Application View | Description / What to Highlight |
-| :- | :--- | :--- | :--- |
-| **01** | `01_dashboard_overview.png` | Web Browser (`localhost:5173`) | **Main Dashboard View**: Highlight the 4 KPI cards (Total Students: 16, Departments: 6, Overall Average: 67.0%, Top Performer), the Department Distribution bar chart, and the Grade Distribution chart. |
-| **02** | `02_students_table_view.png` | Web Browser (`localhost:5173`) | **Students Management Directory**: Shows the responsive table with Roll Numbers, Names, Emails, Departments, Semesters, Marks breakdown, Average scores, Grade badges, and pagination bar. |
-| **03** | `03_students_search_filter.png`| Web Browser (`localhost:5173`) | **Live Filtering & Sorting**: Type a search query (e.g., `"Rahul"` or `"CSE"`), select a department filter (e.g., `CSE`), and sort by `Average Marks` descending. |
-| **04** | `04_add_student_modal.png` | Web Browser (`localhost:5173`) | **Enroll New Student Modal**: Shows the clean form with Roll Number, Name, Email, Department dropdown, Semester select, and subject marks for DBMS, DSA, and Python. |
-| **05** | `05_form_validation_error.png` | Web Browser (`localhost:5173`) | **Input Validation in Action**: Enter an invalid mark (e.g., `120` or `-5`) or an invalid email format and click save. Highlight the red validation error message. |
-| **06** | `06_duplicate_key_error.png` | Web Browser (`localhost:5173`) | **Duplicate Key Protection**: Attempt to add a student with an existing roll number (e.g., `CSE2024001`). Highlight the MongoDB HTTP 409 Conflict toast notification. |
-| **07** | `07_student_details_modal.png` | Web Browser (`localhost:5173`) | **Student Profile & Marks Modal**: Click "Details" on any student. Highlight the subject marks breakdown bars (DBMS, DSA, Python), overall average percentage, and Grade badge. |
-| **08** | `08_edit_student_modal.png` | Web Browser (`localhost:5173`) | **Update Student Record**: Click the edit button, modify a student's marks, and observe the live estimated average calculation before saving. |
-| **09** | `09_delete_confirm_dialog.png` | Web Browser (`localhost:5173`) | **Deletion Safeguard**: Click the trash icon on a student to show the confirmation modal showing student name and roll number before deletion. |
-| **10** | `10_analytics_pipelines.png` | Web Browser (`localhost:5173`) | **MongoDB Analytics Page**: Scroll through the 5 Aggregation Pipeline charts (Department counts, Department averages, Grade distribution, Semester counts, and Top 5 Leaderboard). Highlight the stage explanation boxes (`$group`, `$sort`, `$project`, `$switch`). |
-| **11** | `11_top_5_leaderboard.png` | Web Browser (`localhost:5173`) | **Top 5 Leaderboard Table**: Shows the top 5 ranked students with gold, silver, and bronze rank medals and grade A scores. |
-| **12** | `12_mongodb_compass_docs.png` | MongoDB Compass / mongosh | **MongoDB Database Inspection**: Open MongoDB Compass, connect to `mongodb://localhost:27017/`, open database `student_management` and collection `students`. Show the documents with native BSON `ObjectId`, nested `marks`, and native `created_at` Date. |
-| **13** | `13_mongodb_indexes.png` | MongoDB Compass | **Indexes Tab in Compass**: Show the indexes: `idx_unique_roll_no` (Unique), `idx_unique_email` (Unique), `idx_department`, and `idx_semester`. |
-| **14** | `14_test_suite_passing.png` | PowerShell Terminal | **Automated Tests Passing**: Run `python -m unittest tests/test_api.py` and capture the terminal output showing `Ran 14 tests in 1.235s OK`. |
+**Candidate Name**: RAM KUMAR  
+**Registration Number**: 12306472  
+**Roll Number**: 26  
+**Section**: KO020  
+**Department**: Computer Science & Engineering  
+**Institution**: Lovely Professional University  
+**GitHub Repository**: [https://github.com/ramkumar-lpu/Student-Management-System_NOSQL](https://github.com/ramkumar-lpu/Student-Management-System_NOSQL)  
 
 ---
 
-## Recommended Step-by-Step Instructions to Capture
+This guide provides a structured, step-by-step checklist of all **15 essential screenshots** to capture from your browser, terminal, and MongoDB Compass for your academic project report and viva presentation.
 
-1. **Start Backend**:
-   ```powershell
-   cd c:\Users\ramku\Downloads\NOSQL_SMS\backend
-   .\venv\Scripts\python.exe app.py
-   ```
-2. **Start Frontend**:
-   ```powershell
-   cd c:\Users\ramku\Downloads\NOSQL_SMS\frontend
-   npm run dev
-   ```
-3. Open Google Chrome or Microsoft Edge at `http://localhost:5173`.
-4. Press `Windows Key + Shift + S` (Snipping Tool on Windows) to capture clear rectangular screenshots of each view listed above.
-5. Save the images in an `images/` or `screenshots/` directory for your final report or presentation slides.
+---
+
+## 1. Environment URLs & Quick Start
+
+You can capture screenshots either using the **Dockerized Production Stack** or the **Local Development Stack**:
+
+### Option A: Dockerized Application (Recommended)
+```powershell
+docker compose up -d
+```
+- **Web Application URL**: `http://localhost:8082`  
+  *(Note: Port 8082 is configured in `.env` to avoid conflict with host port 8080)*
+- **Backend Direct API**: `http://localhost:5000/api/health`
+
+### Option B: Local Development Stack
+- **Frontend URL**: `http://localhost:5173`
+- **Backend API**: `http://localhost:5000`
+
+---
+
+## 2. Master Screenshot Checklist (15 Essential Captures)
+
+| # | Screenshot Filename | Source / Tool | View to Capture & What to Highlight |
+| :-: | :--- | :--- | :--- |
+| **01** | `01_dashboard_overview.png` | Browser (`http://localhost:8082`) | **Executive Academic Dashboard**: Capture the 4 KPI cards (Total Students: 16, Active Departments: 6, Institutional Average: ~67%, Top Performer), Department distribution bar chart, and Grade distribution chart. |
+| **02** | `02_students_directory.png` | Browser (`/students`) | **Student Directory View**: Display the responsive table showing Roll Numbers, Names, Emails, Departments, Semesters, Marks breakdown, Average Scores, Letter Grade pills, and pagination. |
+| **03** | `03_search_and_filter.png` | Browser (`/students`) | **Live Filter & Sorting**: Type a search query (e.g., `"Aarav"` or `"CSE"`), select a department filter (`CSE`), and sort by `Average Marks` descending. |
+| **04** | `04_enroll_student_modal.png` | Browser Modal | **Enroll Student Modal Form**: Open the modal. Show clean fields for Roll Number, Name, Email, Department dropdown, Semester selector, and marks for DBMS, DSA, and Python. |
+| **05** | `05_form_validation_error.png` | Browser Modal | **Client-Side Validation Error**: Enter an invalid mark (e.g., `120` or `-10`) or an invalid email format. Highlight the red validation alert message blocking submission. |
+| **06** | `06_duplicate_key_error.png` | Browser Toast | **MongoDB Duplicate Key Protection**: Attempt to register a student with an already existing roll number (e.g., `CSE2024001`). Highlight the red HTTP 409 Conflict toast message. |
+| **07** | `07_student_details_modal.png` | Browser Modal | **Student Profile & Marks Card**: Click "Details" on a student. Highlight the visual subject score progress bars (DBMS, DSA, Python), overall percentage, and Grade badge. |
+| **08** | `08_edit_student_modal.png` | Browser Modal | **Update Record Workflow**: Click "Edit", modify a mark score, and show the real-time estimated average recalculation before saving. |
+| **09** | `09_delete_confirmation.png` | Browser Modal | **Safe Deletion Dialog**: Click the trash icon. Highlight the safeguard confirmation dialog displaying the student's name and roll number. |
+| **10** | `10_analytics_pipelines.png` | Browser (`/analytics`) | **MongoDB Aggregation Analytics**: Full view of the Analytics page showing interactive charts for Department Counts, Department Averages, Grade Distribution, and Semester Distribution. |
+| **11** | `11_top_5_leaderboard.png` | Browser (`/analytics`) | **Top 5 Leaderboard**: Show the Top 5 ranked achievers table with Gold, Silver, and Bronze medal badges and computed Grade A scores. |
+| **12** | `12_mongodb_compass_docs.png` | MongoDB Compass | **Compass Document Viewer**: Connect to `mongodb://localhost:27017/` (or via container). Open `student_management.students`. Show documents with native BSON `ObjectId`, embedded `marks`, and native `created_at` Date. |
+| **13** | `13_mongodb_indexes.png` | MongoDB Compass | **Database Indexes Tab**: Show `idx_unique_roll_no` (Unique), `idx_unique_email` (Unique), `idx_department`, `idx_semester`, and `idx_name`. |
+| **14** | `14_test_suite_passing.png` | Terminal | **Automated Tests Passing**: Run `python -m unittest tests/test_api.py`. Show terminal output: `Ran 14 tests in 0.353s OK`. |
+| **15** | `15_docker_containers.png` | Terminal | **Docker Infrastructure Status**: Run `docker compose ps`. Show all 3 containers (`sms_mongodb`, `sms_backend`, `sms_frontend`) in `Up (healthy)` state. |
+
+---
+
+## 3. Recommended Capture Sequence & Viva Demonstration Tips
+
+1. **Terminal Pre-Checks (Screenshots 14 & 15)**:
+   - Run `docker compose ps` to prove your multi-container environment is healthy.
+   - Run `docker compose exec backend python -m unittest tests/test_api.py` to demonstrate that all 14 automated tests pass inside the container.
+2. **MongoDB Compass Inspection (Screenshots 12 & 13)**:
+   - Show the examiner the raw BSON document structure in MongoDB Compass to defend your embedded marks design.
+   - Click the "Indexes" tab in Compass to demonstrate how uniqueness is guaranteed at the database engine level.
+3. **Application Interaction (Screenshots 01 to 11)**:
+   - Navigate to `http://localhost:8082` in Google Chrome or Microsoft Edge.
+   - Press `Win + Shift + S` (Windows Snipping Tool) to capture high-resolution screenshots.
+   - Demonstrate the Top 5 Leaderboard and explain how the `$switch` and `$limit` aggregation stages function.

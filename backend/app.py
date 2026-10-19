@@ -81,6 +81,6 @@ app = create_app()
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
-    host = os.getenv("HOST", "127.0.0.1")
+    host = os.getenv("HOST", "0.0.0.0")
     print(f"[*] Starting Student Management System Backend on http://{host}:{port}")
     app.run(host=host, port=port, debug=True)

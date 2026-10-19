@@ -13,6 +13,7 @@ CRITICAL: Runs against an ISOLATED database ('student_management_test')
 so the user's main project database ('student_management') is never corrupted or deleted.
 """
 
+import os
 import unittest
 from datetime import datetime, timezone
 from pymongo import MongoClient
@@ -20,8 +21,8 @@ from pymongo import MongoClient
 from app import create_app
 from database import get_db, init_database
 
-TEST_DB_NAME = "student_management_test"
-MONGO_URI = "mongodb://localhost:27017/"
+TEST_DB_NAME = os.getenv("TEST_DB_NAME", "student_management_test")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 
 
 class StudentAPITestCase(unittest.TestCase):

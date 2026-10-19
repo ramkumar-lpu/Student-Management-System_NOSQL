@@ -14,11 +14,12 @@ A full-stack, production-grade, and beginner-friendly Student Management System 
 6. [Database Validation & Indexing Strategy](#6-database-validation--indexing-strategy)
 7. [The 5 MongoDB Aggregation Pipelines](#7-the-5-mongodb-aggregation-pipelines)
 8. [REST API Endpoints](#8-rest-api-endpoints)
-9. [Installation & Setup (Windows)](#9-installation--setup-windows)
-10. [Sample Data Seeding](#10-sample-data-seeding)
-11. [Running Automated Tests](#11-running-automated-tests)
-12. [Project Deliverables](#12-project-deliverables)
-13. [Top Viva Questions & Answers](#13-top-viva-questions--answers)
+9. [Docker Deployment & Container Architecture](#9-docker-deployment--container-architecture)
+10. [Non-Docker Manual Setup (Windows)](#10-non-docker-manual-setup-windows)
+11. [Sample Data Seeding](#11-sample-data-seeding)
+12. [Running Automated Tests](#12-running-automated-tests)
+13. [Project Deliverables](#13-project-deliverables)
+14. [Top Viva Questions & Answers](#14-top-viva-questions--answers)
 
 ---
 
@@ -298,27 +299,150 @@ All pipelines are located in [`backend/aggregations.py`](backend/aggregations.py
 
 ---
 
-## 9. Installation & Setup (Windows)
+## 9. Docker Deployment & Container Architecture
+
+The application is fully containerized with a production-grade multi-tier architecture using Docker & Docker Compose.
+
+```
+┌────────────────────────────────────────────────────────┐
+│                      Host Machine                      │
+│            Browser URL: http://localhost:8080          │
+└───────────────────────────▲────────────────────────────┘
+                            │ Port 8080:80 (or ${FRONTEND_PORT}:80)
+┌───────────────────────────▼────────────────────────────┐
+│              sms_frontend (Nginx 1.27 Alpine)          │
+│  - Multi-stage build (Node 22-alpine -> Nginx runtime) │
+│  - Serves optimized React 19 production build assets   │
+│  - Reverse-proxies /api requests to backend:5000       │
+└───────────────────────────▲────────────────────────────┘
+                            │ Docker Network: sms_network
+┌───────────────────────────▼────────────────────────────┐
+│              sms_backend (Python 3.11 Slim)            │
+│  - Non-root container security (appuser:appuser)       │
+│  - Connects to mongodb:27017 inside Docker network     │
+│  - Healthcheck on /api/health                          │
+└───────────────────────────▲────────────────────────────┘
+                            │ Port 27017 (Internal)
+┌───────────────────────────▼────────────────────────────┐
+│              sms_mongodb (Official Mongo 7.0)          │
+│  - Persistent named volume: sms_mongo_data -> /data/db │
+│  - Healthcheck: mongosh ping                           │
+│  - Isolated from public internet                       │
+└────────────────────────────────────────────────────────┘
+```
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows with WSL2 backend or Hyper-V)
+- Docker Compose v2+ (included with Docker Desktop)
+
+---
+
+### Docker Quickstart Commands
+
+#### 1. Build and Start All Containers
+From the project root (`NOSQL_SMS/`):
+```powershell
+docker compose up --build -d
+```
+*This downloads official images, builds the React production assets in Nginx, builds the Flask backend, and starts all 3 services in the background.*
+
+#### 2. Check Service Health & Status
+```powershell
+docker compose ps
+```
+You should see all three containers `Up` and `(healthy)`:
+- `sms_mongodb` (`mongo:7.0`)
+- `sms_backend` (`nosql_sms-backend`)
+- `sms_frontend` (`nosql_sms-frontend`)
+
+#### 3. Seed Sample Data (Inside Container)
+Populate the 16 realistic students across all grade tiers:
+```powershell
+docker compose exec backend python seed.py
+```
+> [!NOTE]
+> The seed script is completely idempotent (uses MongoDB upserts on `roll_no`). It will not create duplicates if run multiple times.
+
+#### 4. Run Automated Backend Tests (Inside Container)
+Run the 14-test suite safely against the isolated test database:
+```powershell
+docker compose exec backend python -m unittest discover -s tests
+```
+
+#### 5. View Real-Time Container Logs
+```powershell
+# View logs from all services
+docker compose logs -f
+
+# View logs from backend only
+docker compose logs -f backend
+
+# View logs from database only
+docker compose logs -f mongodb
+```
+
+#### 6. Stop Services (Preserving Database Data)
+```powershell
+docker compose down
+```
+> [!IMPORTANT]
+> Standard `docker compose down` stops and removes the containers and network, but **preserves all database records** inside the named volume `sms_mongo_data`.
+
+#### 7. Rebuild Containers After Code Changes
+```powershell
+docker compose up --build -d
+```
+
+#### 8. Resetting Database (Destructive)
+> [!CAUTION]
+> If you want to completely erase the database and start from scratch, run:
+> ```powershell
+> docker compose down -v
+> ```
+> The `-v` flag deletes the persistent volume `sms_mongo_data`. All student records will be permanently removed.
+
+---
+
+### Access URLs
+- **Web Application**: [`http://localhost:8080`](http://localhost:8080) (or `http://localhost:8082` if custom `FRONTEND_PORT` configured)
+- **Direct Backend API**: [`http://localhost:5000/api/health`](http://localhost:5000/api/health)
+- **API via Frontend Proxy**: [`http://localhost:8080/api/health`](http://localhost:8080/api/health)
+
+---
+
+### Troubleshooting Docker Port Conflicts
+
+#### Issue 1: Port 8080 Already In Use (e.g., by Jenkins or Tomcat)
+If another service on your host is using port 8080, you will see `bind: Only one usage of each socket address is normally permitted`.
+**Solution**:
+1. Open `.env` in the project root.
+2. Change `FRONTEND_PORT`:
+   ```ini
+   FRONTEND_PORT=8082
+   ```
+3. Run `docker compose up -d`. Open `http://localhost:8082`.
+
+#### Issue 2: Local Windows MongoDB Conflict
+The Compose file deliberately leaves port 27017 internal to `sms_network` (using `expose: - "27017"` instead of `ports:`). This ensures Docker MongoDB does not collide with any local Windows MongoDB service running on your machine.
+
+---
+
+## 10. Non-Docker Manual Setup (Windows)
+
+If you prefer to run the system directly on your Windows host without Docker:
 
 ### Prerequisites
 - Python 3.10+ (Verified with Python 3.11)
 - Node.js 18+ (Verified with Node v22.19)
-- MongoDB Server running locally on `localhost:27017` (or MongoDB Atlas connection string)
+- MongoDB Server running locally on `localhost:27017` (verified with Windows MongoDB service)
 
-### Step 1: Clone or Navigate to Directory
+### Step 1: Configure & Start Backend
+Open a PowerShell terminal for the backend:
 ```powershell
-cd c:\Users\ramku\Downloads\NOSQL_SMS
-```
+cd c:\Users\ramku\Downloads\NOSQL_SMS\backend
 
-### Step 2: Configure & Start Backend
-Open a terminal for the backend:
-```powershell
-cd backend
-
-# Create virtual environment (if not already created)
+# Create and activate virtual environment
 python -m venv venv
-
-# Activate virtual environment
 .\venv\Scripts\Activate.ps1
 
 # Install requirements
@@ -327,17 +451,17 @@ pip install -r requirements.txt
 # Seed sample data (16 students across all departments and grades)
 python seed.py
 
-# Run the Flask backend
+# Run Flask backend server
 python app.py
 ```
 *Backend will start on `http://127.0.0.1:5000`.*
 
-### Step 3: Configure & Start Frontend
-Open a second terminal for the frontend:
+### Step 2: Configure & Start Frontend
+Open a second PowerShell terminal for the frontend:
 ```powershell
-cd frontend
+cd c:\Users\ramku\Downloads\NOSQL_SMS\frontend
 
-# Install Node dependencies
+# Install dependencies
 npm install
 
 # Start Vite development server
@@ -347,10 +471,14 @@ npm run dev
 
 ---
 
-## 10. Sample Data Seeding
+## 11. Sample Data Seeding
 
 Run the seed script at any time to populate 16 realistic students across 6 departments:
 ```powershell
+# In Docker environment:
+docker compose exec backend python seed.py
+
+# In Local host environment:
 cd backend
 .\venv\Scripts\python.exe seed.py
 ```
@@ -359,11 +487,15 @@ cd backend
 
 ---
 
-## 11. Running Automated Tests
+## 12. Running Automated Tests
 
 The automated test suite runs against an **isolated test database** (`student_management_test`) so your primary academic data in `student_management` is never touched or deleted.
 
 ```powershell
+# In Docker environment:
+docker compose exec backend python -m unittest discover -s tests
+
+# In Local host environment:
 cd backend
 .\venv\Scripts\python.exe -m unittest tests/test_api.py
 ```
@@ -386,7 +518,7 @@ cd backend
 
 ---
 
-## 12. Project Deliverables
+## 13. Project Deliverables
 
 This workspace contains full academic documentation for your CSE494 submission:
 - [PROJECT_REPORT.md](PROJECT_REPORT.md): Comprehensive academic project report covering problem statement, NoSQL justification, document design, aggregation pipelines, and test results.
@@ -395,7 +527,7 @@ This workspace contains full academic documentation for your CSE494 submission:
 
 ---
 
-## 13. Top Viva Questions & Answers
+## 14. Top Viva Questions & Answers
 
 **Q1: Why choose MongoDB over a Relational Database (MySQL) for this project?**
 > In student management, marks and profile data are inherently hierarchical. In MongoDB, subject marks are stored as an embedded sub-document inside the student record. This gives high locality of reference—all data is retrieved in a single disk read without complex multi-table SQL `JOIN`s.
